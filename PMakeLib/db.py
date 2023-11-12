@@ -7,14 +7,18 @@ sqlite3_connection: sqlite3.Connection = None
 
 def init():
     global sqlite3_connection
-    path = app_files.config["db_path"]
+    path = app_files.to_absolute(app_files.config["db_path"])
+    # print("[DBG]: connecting to DB: ", path)
     sqlite3_connection = sqlite3.connect(path)
 
 
-def get_last_hash(file_absolute_pah: str) -> str:
+def get_last_hash(file_absolute_pah: str) -> str or None:
     cur = sqlite3_connection.cursor()
     cur.execute(f"SELECT md5 FROM files WHERE path == '{file_absolute_pah}'")
-    return cur.fetchone()[0]
+    res = cur.fetchone()
+    if res is None:
+        return None
+    return res[0]
 
 
 def set_hash(file_absolute_pah: str, md5_hash: str):
