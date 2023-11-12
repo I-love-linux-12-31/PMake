@@ -6,6 +6,18 @@ from hashlib import md5
 targets = dict()
 
 
+def replace_env_vars(string):
+    start = string.find('$(')
+    while start != -1:
+        end = string.find(')', start)
+        if end != -1:
+            env_var_name = string[start+2:end]
+            env_var_value = os.environ.get(env_var_name, '')
+            string = string[:start] + env_var_value + string[end+1:]
+        start = string.find('$(', end)
+    return string
+
+
 class Target:
     name: str = None
     dependencies: [str, ] = None
@@ -57,7 +69,7 @@ class Target:
             return
         print("Running", self.name, "...")
         for command in self.commands:
-            os.system(command.replace("@echo", "echo"))
+            os.system(replace_env_vars(command.replace("@echo", "echo")))
 
         lh = get_last_hash(to_absolute(self.name))
         if lh is None:

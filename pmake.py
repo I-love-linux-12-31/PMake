@@ -1,6 +1,9 @@
-#!env python3
+#!/usr/bin/python3
 import sys
 import os
+from pathlib import Path
+sys.path.append(str(Path(sys.argv[0]).parent))
+print(sys.path)
 from PMakeLib.classes import *
 import PMakeLib.app_files, PMakeLib.db
 
@@ -10,7 +13,26 @@ def init():
     PMakeLib.db.init()
 
 
+def get_top():
+    visited = set()
+    top_order = []
+
+    def dfs(node):
+        if node in visited:
+            return
+        visited.add(node)
+        for dependency in targets[node].dependencies:
+            dfs(dependency)
+        top_order.append(node)
+
+    for target in targets:
+        dfs(target)
+
+    return max(top_order, key=lambda x: len(x))
+
+
 def main():
+    print("[DBG]", os.getcwd(), "is current dir!")
     init()
     listdir = [d.upper() for d in os.listdir()]
     if "MAKEFILE" not in listdir and "MAKEFILE.PMAKE" not in listdir:
@@ -35,7 +57,7 @@ def main():
             target_lines.append(line)
         else:
             # print(tuple(map(str.strip, line.split("="))))
-            var_name, var_val = tuple(map(str.strip, line.split("=")))
+            var_name, var_val = tuple(map(str.strip, replace_env_vars(line).split("=")))
             os.environ[var_name] = var_val
     if header_line != "":
         Target(header_line, target_lines)  # .debug_prin()
@@ -50,7 +72,7 @@ def main():
     else:
         if not targets.items():
             return
-        tuple(targets.items())[0][1]()
+        get_top()()
 
     PMakeLib.db.on_exit()
 
