@@ -3,7 +3,8 @@ import sys
 import os
 from pathlib import Path
 sys.path.append(str(Path(sys.argv[0]).parent))
-print(sys.path)
+sys.path.append(str(Path(sys.argv[0]).parent) + "/PMakeLib")
+# print(sys.path)
 from PMakeLib.classes import *
 import PMakeLib.app_files, PMakeLib.db
 
@@ -32,7 +33,7 @@ def get_top():
 
 
 def main():
-    print("[DBG]", os.getcwd(), "is current dir!")
+    # print("[DBG]", os.getcwd(), "is current dir!")
     init()
     listdir = [d.upper() for d in os.listdir()]
     if "MAKEFILE" not in listdir and "MAKEFILE.PMAKE" not in listdir:
@@ -72,7 +73,7 @@ def main():
     else:
         if not targets.items():
             return
-        get_top()()
+        targets[get_top()]()
 
     PMakeLib.db.on_exit()
 
